@@ -1,0 +1,25 @@
+{
+    "events": [
+        {"type":"addVictim","level":1,"lat":40.458208,"long":-88.961535},
+        {"type":"addDamage","level":2,"lat":40.458208,"long":-88.961535,"radius":35},
+        {"type":"addVictim","level":3,"lat":40.45824,"long":-88.958745},
+        {"type":"addDamage","level":2,"lat":40.45824,"long":-88.958745,"radius":45},
+        {"type":"addVictim","level":3,"lat":40.457881,"long":-88.956771},
+        {"type":"addDamage","level":1,"lat":40.457881,"long":-88.956771,"radius":100},
+        {"type":"addVictim","level":3,"lat":40.457751,"long":-88.956671},
+        {"type":"addVictim","level":2,"lat":40.457700,"long":-88.956700},
+        {"type":"addVictim","level":1,"lat":40.457985,"long":-88.956971},
+        {"type":"addVictim","level":1,"lat":40.457910,"long":-88.956904},
+        {"type":"addVictim","level":3,"lat":40.457777,"long":-88.956777},
+
+        {"type":"addVictim","level":2,"lat":40.457685,"long":-88.95381},
+        {"type":"addDamage","level":3,"lat":40.457685,"long":-88.95381,"radius":70},
+        {"type":"addVictim","level":2,"lat":40.457699,"long":-88.95425},
+        {"type":"addVictim","level":1,"lat":40.457555,"long":-88.95333},
+        {"type":"addVictim","level":3,"lat":40.457565,"long":-88.95250},
+        {"type":"addVictim","level":3,"lat":40.457777,"long":-88.95777},
+        
+        {"type":"addVictim","level":2,"lat":40.457196,"long":-88.952222},
+        {"type":"addDamage","level":3,"lat":40.457196,"long":-88.952222,"radius":25}
+    ]
+}

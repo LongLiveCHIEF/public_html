@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Simple Map</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <style>
+      html, body, #map-canvas {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+      }
+    </style>
+    <link href="/css/bootstrap.css" rel="stylesheet" />
+   
+    <script src="/js/libs/jquery-1.9.0/jquery.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+    <script>
+        var config = {
+            severeColorStroke:"#c30909",
+            severeColorFill:"#f21919",
+            medColorStroke:"#ddaa10",
+            medColorFill:"#f8c221",
+            lowColorStroke:"#e5df11",
+            lowColorFill:"#f4ee38",
+            damageStrokeOpacity:.8,
+            damageFillOpacity:.5,
+            damageStrokeWeight:2,
+            victimPath:google.maps.SymbolPath.BACKWARD_CLOSED_ARROW,
+            victimStrokeOpacity:1,
+            victimFillOpacity:1,
+            victimStrokeWeight:2,
+            victimScale:4,
+            processStreamInterval:225
+        },
+map, damageArray = [],victimsArray = [];
+function initialize() {
+var myLatlng = new google.maps.LatLng(40.456928,-88.955827);
+  var mapOptions = {
+    zoom: 17,
+    center: myLatlng,
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+  }
+  map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
+
+
+  //init and add controls
+  var damageControlDiv = document.createElement('div');
+  var damageControls = new DamageControls(damageControlDiv,map);
+  
+  var victimControlDiv = document.createElement('div');
+  var victimControls = new VictimControls(victimControlDiv,map);
+  
+  var rescuedControlDiv = document.createElement('div');
+  var rescuedControls = new RescuedControls(rescuedControlDiv,map);
+  
+  damageControlDiv.index = 0;
+  map.controls[google.maps.ControlPosition.RIGHT_TOP].push(damageControlDiv);
+  
+  rescuedControlDiv.index = 0;
+  map.controls[google.maps.ControlPosition.TOP_CENTER].push(rescuedControlDiv);
+  victimControlDiv.index = 1;
+  map.controls[google.maps.ControlPosition.TOP_CENTER].push(victimControlDiv);
+  
+  
+    
+}
+
+//add control functions
+function DamageControls (controlDiv, map){
+    // Set CSS styles for the DIV containing the control
+  // Setting padding to 5 px will offset the control
+  // from the edge of the map
+  controlDiv.style.padding = '5px';
+
+  // Set CSS for the control border
+  var controlUI = document.createElement('div');
+  controlUI.className = "btn-group";
+  controlUI.setAttribute("data-toggle","buttons-checkbox");
+  controlUI.title = 'Select Damage Filters';
+  
+//create individual buttons
+  var cond1 = document.createElement('button');
+  cond1.className = "btn";
+  cond1.innerHTML = '1';
+  var cond2 = document.createElement('button');
+  cond2.className = "btn";
+  cond2.innerHTML = '2';
+  var cond3 = document.createElement('button');
+  cond3.className = "btn";
+  cond3.innerHTML = '3';
+  
+  
+  controlUI.appendChild(cond1);
+  controlUI.appendChild(cond2);
+  controlUI.appendChild(cond3);
+  
+  var controlLabel = document.createElement('span');
+  controlLabel.className = 'label';
+  controlLabel.innerHTML = 'Damage';
+  
+  controlDiv.appendChild(controlLabel);
+  controlDiv.appendChild(controlUI);
+        
+
+}
+
+function VictimControls (controlDiv, map){
+    // Set CSS styles for the DIV containing the control
+  // Setting padding to 5 px will offset the control
+  // from the edge of the map
+  controlDiv.style.padding = '5px';
+
+  // Set CSS for the control border
+  var controlUI = document.createElement('div');
+  controlUI.className = "btn-group";
+  controlUI.setAttribute("data-toggle","buttons-checkbox");
+  controlUI.title = 'Select Damage Filters';
+  
+//create individual buttons
+  var cond1 = document.createElement('button');
+  cond1.className = "btn";
+  cond1.innerHTML = '1';
+  var cond2 = document.createElement('button');
+  cond2.className = "btn";
+  cond2.innerHTML = '2';
+  var cond3 = document.createElement('button');
+  cond3.className = "btn";
+  cond3.innerHTML = '3';
+  
+  controlUI.appendChild(cond1);
+  controlUI.appendChild(cond2);
+  controlUI.appendChild(cond3);
+  
+  var controlLabel = document.createElement('span');
+  controlLabel.className = 'label';
+  controlLabel.innerHTML = 'Victims';
+  
+  controlDiv.appendChild(controlLabel);
+  controlDiv.appendChild(controlUI);
+        
+}
+
+function RescuedControls (controlDiv,map){
+      // Set CSS styles for the DIV containing the control
+  // Setting padding to 5 px will offset the control
+  // from the edge of the map
+  controlDiv.style.padding = '5px';
+
+  // Set CSS for the control border
+  var controlUI = document.createElement('div');
+  controlUI.className = "btn-group";
+  controlUI.setAttribute("data-toggle","buttons-radio");
+  controlUI.title = 'Select Damage Filters';
+  
+  //create individual buttons
+  var cond1 = document.createElement('button');
+  cond1.className = "btn btn-primary";
+  cond1.setAttribute("onclick","processCatEvent()");
+  cond1.innerHTML = 'Live';
+  var cond2 = document.createElement('button');
+  cond2.className = "btn btn-primary";
+  cond2.innerHTML = 'Rescued';
+  var cond3 = document.createElement('button');
+  cond3.className = "btn btn-primary";
+  cond3.innerHTML = 'All';
+  
+  controlUI.appendChild(cond1);
+  controlUI.appendChild(cond2);
+  controlUI.appendChild(cond3);
+  
+  controlDiv.appendChild(controlUI);
+}
+
+function getColors(level){
+    var data = {
+        stroke: '',
+        fill:''
+    };
+     if(level === 3){
+        data.stroke = config.severeColorStroke;
+        data.fill = config.severeColorFill;
+    } else if(level === 2){
+        data.stroke = config.medColorStroke;
+        data.fill = config.medColorFill;
+    } else {
+        data.stroke = config.lowColorStroke;
+        data.fill = config.lowColorFill;
+    }
+    return data;
+}
+
+function addDamage(map,data){
+    //define markers and overlays
+    var color = getColors(data.level);
+    var damageOptions = {
+                strokeColor: color.stroke,
+                strokeOpacity:config.damageStrokeOpacity,
+                strokeWeight:config.damageStrokeWeight,
+                fillColor: color.fill,
+                fillOpacity:config.damageFillOpacity,
+                map:map,
+                center: new google.maps.LatLng(data.lat,data.long),
+                radius:data.radius
+            },   
+
+    damage = new google.maps.Circle(damageOptions);
+    damageArray.push(damage);
+    
+}
+
+function addVictim(map,data){
+    var color = getColors(data.level)
+    marker = new google.maps.Marker({
+        position: new google.maps.LatLng(data.lat,data.long),
+        icon: {
+            path: config.victimPath,
+            scale: config.victimScale,
+            strokeColor: color.stroke,
+            strokeWeight: config.victimStrokeWeight,
+            strokeOpacity:config.victimStrokeOpacity,
+            fillColor:color.fill,
+            fillOpacity:config.victimFillOpacity
+          },
+        map: map
+    });
+    victimsArray.push(marker);
+
+}
+
+function rescueVictim(map, data){
+    
+}
+
+var processCatEvent = function(){
+    var stream = 'catStream.json';
+    $.ajax({
+        url:stream,
+        type:"GET",
+        dataType:"JSON",
+        success:function(data){
+            var i = 0;
+            var addData = function(){
+                if(i < data.events.length){
+                    //run functions from json stream
+                    var event = data.events[i];
+                        var prams = {
+                            lat:event.lat,
+                            long:event.long,
+                            level:event.level,
+                            radius:event.radius
+                        }; 
+                        var fn = window[event.type];
+                        fn(map,prams);
+                    i++;
+                } else{
+                    clearInterval(tout);
+                }
+            }
+
+            var tout = setInterval(addData,config.processStreamInterval);
+            console.log("events processed");
+               
+        },
+        error:function(data){
+            console.log("Telemetry #fail. Operator #fail.");
+        }
+    });
+}
+
+
+
+
+
+google.maps.event.addDomListener(window, 'load', initialize);
+
+    </script>
+  </head>
+  <body>
+    <div id="map-canvas"></div>
+    
+  </body>
+</html>
